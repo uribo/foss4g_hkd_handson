@@ -16,11 +16,15 @@ knitr::opts_chunk$set(
 
 # モダンな方法で学ぶ、Rによる地理空間情報データの処理
 
-## 概要
+FOSS4G北海道2017でのハンズオン資料
 
-### スライド
+## スライド
 
 - [お品書き](slides/0-welcome.Rmd)
 - [R, RStudioのいろは](slides/1-r-introduction.Rmd)
-- [Rを使った地理空間情報データ操作と可視化](slides/2-data-manip-and-vis.Rmd)
-- [インタラクティブに動作する地図アプリケーションの作成](slides/3-advanced.Rmd)
+- [Rを使った地理空間情報データ操作と可視化: 基礎編](slides/2-data-manip-and-vis.Rmd)
+- [Rを使った地理空間情報データ操作と可視化: 実践編](slides/2-data-manip-and-vis.Rmd)
+- [補足資料](slides/3-advanced.Rmd)
+
+
+
