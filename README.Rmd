@@ -21,10 +21,10 @@ FOSS4G北海道2017でのハンズオン資料
 ## スライド
 
 - [お品書き](slides/0-welcome.Rmd)
-- [R, RStudioのいろは](slides/1-r-introduction.Rmd)
-- [Rを使った地理空間情報データ操作と可視化: 基礎編](slides/2-data-manip-and-vis.Rmd)
-- [Rを使った地理空間情報データ操作と可視化: 実践編](slides/2-data-manip-and-vis.Rmd)
-- [補足資料](slides/3-advanced.Rmd)
+- [R, RStudioのいろは](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/1-r-introduction.html)
+- [Rを使った地理空間情報データ操作と可視化: 基礎編](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/2-data-manip-and-vis.html)
+- [Rを使った地理空間情報データ操作と可視化: 実践編](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/2-data-manip-and-vis2.Rmd)
+- [補足資料](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/3-advanced.html)
 
 
 
