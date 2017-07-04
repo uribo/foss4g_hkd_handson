@@ -1,0 +1,53 @@
+---
+title: "モダンな方法で学ぶ、<br>Rによる地理空間情報データの処理"
+subtitle: "FOSS4G北海道 ハンズオンデイ"
+author: "瓜生 真也 @u_ribo"
+date: "2017年6月30日"
+output:
+  xaringan::moon_reader:
+    yolo: false
+    css: ja.css
+    lib_dir: libs
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+---
+
+```{r echo = FALSE}
+library(remoji)
+```
+
+
+# 事前に
+
+<https://github.com/uribo/foss4g_hkd_handson> へアクセスし、必要なファイルをダウンロードしておいてください。
+
+<img src='img/github_readme.png' height=270px>
+
+---
+# 環境
+
+- R / RStudio
+   - 推奨環境は、**R (3.4.0)**, **RStudio (1.0.143)**
+       - https://www.rstudio.com/products/rstudio/download/
+- ブラウザ... **Chrome**
+- 資料はここにあります
+    - https://github.com/uribo/foss4g_hkd_handson
+
+---
+
+# コース概要
+
+1. [R, RStudioのいろは](1-r-introduction.html)
+2. [Rを使った地理空間情報データ操作と可視化](2-data-manip-and-vis.html)
+
+<!-- 参加者のRに対する知識・経験を聞いてみる -->
+
+--
+
+`r emoji("smile")` 適宜、質疑応答・休憩を挟みながら。 `r emoji("smile")`
+
+--
+
+障害対応はなるべく休憩時に行うようにします。

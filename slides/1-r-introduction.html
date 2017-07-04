@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>R, RStudioのいろは</title>
+    <meta charset="utf-8">
+    <meta name="author" content="瓜生 真也 @u_ribo" />
+    <link rel="stylesheet" href="ja.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R, RStudioのいろは
+## FOSS4G北海道 ハンズオンデイ: <br>モダンな方法で学ぶ、Rによる地理空間情報データの処理
+### 瓜生 真也 <span class="citation">@u_ribo</span>
+### 2017年6月30日
+
+---
+
+
+
+
+# 📜 概要
+
+ハンズオンで利用するR, RStudioについて、紹介を兼ねたおさらいをします。
+
+---
+# 💡 Rについて
+
+.pull-left[
+&lt;img src='img/Rlogo.png'&gt;
+]
+
+.pull-right[
+- オープンソースのプログラミング言語
+- パッケージ（ライブラリ）による機能拡張が充実
+- (当初は) 学術・研究領域で活用される
+    - 書籍がたくさん出ている
+]
+
+--
+## データ分析を行う人の「🔪 道具 🔨」
+
+&lt;!-- そうむ, kubo lattice, RAPI --&gt;
+
+---
+&lt;img src='img/rapi.jpg' width=500px&gt;
+
+---
+# 🔵 RStudio
+
+- Rの統合開発環境 (IDE)
+- Rと同じくマルチプラットフォーム (Windows, Mac, Ubuntuで動く)
+- プロジェクト機能をはじめ、Rを実行する上で便利な機能が備わる
+
+&lt;!-- 各パネルの概要。レイアウト変更。 --&gt;
+
+&lt;!-- 新規Rコードファイルの作成 --&gt;
+
+---
+# 🔵 RStudioの画面
+
+&lt;img src='img/rstudio_window.png' height=520px&gt;
+
+---
+# Rproject
+
+- Rを実行する作業環境(ワーキングディレクトリ)
+    - コードやデータ、プロットした図のデフォルトの保存先
+- プロジェクトに応じて切り替えると良い
+
+&lt;!-- 左上のアイコンから切り替え --&gt;
+
+--
+
+![](img/Oops.png)
+
+こうした過ちを防ぎやすい...
+
+--
+## 新規プロジェクトの作成
+
+メニューバーのFileから...
+
+---
+class: bg-hlt, middle, center
+# 👍 やってみよう 💪
+
+ダウンロードしたフォルダにある&lt;br&gt;**170630_handson.Rproj**&lt;br&gt;をRStudioで開きます
+
+---
+# 🔰 最初の3行のRコード
+
+たったの3行で地図が描ける
+
+
+```r
+library(sf)
+nc &lt;- read_sf(system.file("shape/nc.shp", package = "sf"))
+```
+
+
+```r
+plot(nc)
+```
+
+&lt;!-- North Carolina --&gt;
+
+![](img/fig_1_sf_nc-1.png)
+
+
+
+---
+class: bg-hlt, middle, center
+
+# 超簡単
+
+---
+## 🔰 最初の3行のRコード (おさらい)
+
+1. **sf**というパッケージを利用可能にする
+2. `read_sf()`関数によりshapefileを読み込み、"nc"という名前のオブジェクトに保存する
+3. "nc"を`plot()`関数で描画する
+
+
+```r
+library(sf)
+nc &lt;- read_sf(system.file("shape/nc.shp", package = "sf"))
+plot(nc)
+```
+
+---
+# 🔖 Rを扱う上で重要なことば
+
+- オブジェクト、クラス
+- 関数、引数、演算子
+- パッケージ
+
+---
+
+# オブジェクト
+
+### Rで操作する文字、値、関数、変数、データ... &lt;br&gt;Rで扱う「**もの**」の全て
+
+- 「もの」なのなので名前をつけられる
+-  `&lt;-` は代入演算子
+    - `res &lt;- 1+1; res`
+    - resに結果を保存。resとして結果を呼び出す
+    - `res + 3`
+- オブジェクトの種類に応じて名前が付いている
+   - クラス
+
+&lt;!-- RStudioのEnvironmentたぶ --&gt;
+
+---
+# オブジェクトのクラス
+
+オブジェクト名で内容が出力される
+
+
+```r
+letters # 文字列ベクトル
+# [1] "a" "b" "c" "d" "e" "f" "g" ...
+
+iris # データフレーム
+#     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
+# 1            5.1         3.5          1.4         0.2     setosa
+# 2            4.9         3.0          1.4         0.2     setosa
+# 3            4.7         3.2          1.3         0.2     setosa
+# ...
+
+help # 関数
+# function (topic, package = NULL, lib.loc = NULL, verbose = getOption("verbose"), ...
+```
+
+オブジェクトがどのクラスに属するかを`class()`を使って確認
+
+---
+# データフレーム
+
+.pull-left[
+エクセルなどの**行、列**をもった表形式のデータ格納方法
+
+
+```r
+class(iris)
+```
+
+```
+# [1] "data.frame"
+```
+
+```r
+class(nc)
+```
+
+```
+# [1] "sf"         "data.frame"
+```
+]
+
+.pull-right[
+&lt;img src='img/dataframe.png'&gt;
+]
+
+--
+## データフレームにしておくと関数が適用しやすい
+
+---
+# データフレーム
+
+（行・）列には名前がつく
+
+
+```r
+names(iris) # オブジェクトに与えられている名前を取得
+```
+
+```
+# [1] "Sepal.Length" "Sepal.Width"  "Petal.Length" "Petal.Width" 
+# [5] "Species"
+```
+
+
+```r
+head(iris, n = 2) # 先頭行を返す関数
+```
+
+```
+#   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+# 1          5.1         3.5          1.4         0.2  setosa
+# 2          4.9         3.0          1.4         0.2  setosa
+```
+
+```r
+dim(iris) # データフレームのサイズ（行数と列数）を確認
+```
+
+```
+# [1] 150   5
+```
+
+---
+# データフレーム
+
+データフレームの値の参照: `[`, `$`, (`[[`)
+
+
+```r
+# [演算子を使ってデータフレームの各値を参照
+iris[2, ] # 2行目
+```
+
+```
+#   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+# 2          4.9           3          1.4         0.2  setosa
+```
+
+```r
+iris[1:4, "Sepal.Length"] # Sepal.Length列の1から4番目の値
+```
+
+```
+# [1] 5.1 4.9 4.7 4.6
+```
+
+```r
+# $演算子
+iris$Species[1]
+```
+
+```
+# [1] setosa
+# Levels: setosa versicolor virginica
+```
+
+---
+# 関数・演算子
+
+### Rで色々な処理を実行する役割をもつ
+
+- `関数名(引数){処理内容本体}`という形
+    - ユーザが触れるのは関数名と引数
+    - 引数は、関数を実行する対象や、関数の挙動を制御するための値を指定する
+- `1 + 1`を実行するための `+` も関数の一種（演算子）
+- `function()`により定義される（自作関数を書ける）
+
+&lt;!-- 引数...さっきやったhead(n=)とか、グラフのパラメータとか --&gt;
+
+--
+## 関数を覚えることでRでできることの幅が広がる
+
+---
+class: bg-hlt, middle, center
+# 🎩
+
+&lt;!-- マジックの帽子... 何をするかは決まっている。入れるものに応じて結果が変わる --&gt;
+
+---
+# 🤔 関数への理解を深めるには
+
+### `help(関数名)`
+
+&lt;!-- RStudioのhelp --&gt;
+
+- Description
+- Arguments
+- Usage
+- Examples
+- ...
+
+---
+# 📦 パッケージ
+
+### トピックごとに関数をまとめて提供
+
+- インストール時から利用可能
+- `library()`を使って呼び出す
+    - ex) `library(sf)`
+    - `package::function()`という形式でも良い
+- CRAN (しーらん、くらん) からインストール
+    - インストールされていないパッケージを読み込むとエラー。
+    - 現在多くのパッケージがGitHubで開発されています。
+
+&lt;!-- ミラーはRStudioで設定。RStudioのクラウドがおすすめ --&gt;
+
+---
+class: bg-hlt, middle, center
+# それでは改めて
+
+---
+# 🔰 最初の3行のRコード
+
+
+```r
+# 依存関係にあるパッケージもダウンロード
+# install.packages("sf", dependencies = TRUE)
+```
+
+
+```r
+library(sf)
+nc &lt;- read_sf(system.file("shape/nc.shp", package = "sf"))
+plot(nc)
+```
+
+![](img/fig_1_sf_nc-1.png)
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {window.dispatchEvent(new Event('resize'));});</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

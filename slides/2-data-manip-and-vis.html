@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rを使った 地理空間情報データ操作と可視化</title>
+    <meta charset="utf-8">
+    <meta name="author" content="瓜生 真也 @u_ribo" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/jquery/jquery.min.js"></script>
+    <link href="libs/leaflet/leaflet.css" rel="stylesheet" />
+    <script src="libs/leaflet/leaflet.js"></script>
+    <link href="libs/leafletfix/leafletfix.css" rel="stylesheet" />
+    <link href="libs/leaflet-label/leaflet.label.css" rel="stylesheet" />
+    <script src="libs/leaflet-label/leaflet.label.js"></script>
+    <script src="libs/Proj4Leaflet/proj4-compressed.js"></script>
+    <script src="libs/Proj4Leaflet/proj4leaflet.js"></script>
+    <script src="libs/leaflet-binding/leaflet.js"></script>
+    <script src="libs/pymjs/pym.v1.min.js"></script>
+    <script src="libs/widgetframe-binding/widgetframe.js"></script>
+    <link rel="stylesheet" href="ja.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Rを使った<br>地理空間情報データ操作と可視化
+## FOSS4G北海道 ハンズオンデイ: <br>モダンな方法で学ぶ、Rによる地理空間情報データの処理
+### 瓜生 真也 <span class="citation">@u_ribo</span>
+### 2017年6月30日
+
+---
+
+
+
+
+
+# 📜 概要
+
+パッケージを利用したデータ操作と可視化の方法を学びます。はじめに、用意したデータで簡単な説明をします。その後、北海道のオープンデータを用いて、応用的な処理を実践します。
+
+---
+# 💡 パッケージを呼び出そう
+
+
+```r
+# library(tidyverse)
+library(dplyr) # データ操作一般
+library(sf) # 地理空間情報データ処理
+library(leaflet) # 地図描画
+```
+
+ここでは主要なパッケージだけを呼び出します。
+
+--
+
+🔖 名前空間を利用した関数の利用
+
+
+```r
+package::function(...)
+readr::read_csv("hoge.csv")
+```
+
+---
+# 📦 dplyrパッケージ
+
+### データ操作を行う上での重要な機能を関数として提供
+
+&lt;https://github.com/tidyverse/dplyr&gt;
+
+.pull-left[
+- データに対する主要な操作
+    - 選択
+    - 抽出
+    - 加工
+    - 集計
+    - ...
+- データベースからのデータ取得
+]
+
+.pull-right[
+&lt;img src='img/fig-ch2-dplyr-data-manupulation.png' width=380px&gt;
+]
+
+---
+# 📦 sfパッケージ
+
+### モダンな手法で多様な地理空間データを扱う
+
+&lt;https://github.com/edzer/sfr&gt;
+
+&lt;!-- 参加者にとってはここが大事 --&gt;
+
+&lt;!-- 比較的シンプル！、gisドメインがなくても良いという利点 --&gt;
+
+
+- Simple Featuresをはじめとした多様なデータソースに対応
+    - shapefile
+    - kml, geojson, WKT/WKB
+    - PostgreSQL
+- **dplyr**と同名の関数による地理空間データの操作
+- PostGISの関数に近い空間操作・解析が可能
+
+---
+# 📦 leafletパッケージ
+
+### インタラクティブな地図操作が可能
+
+&lt;https://github.com/rstudio/leaflet&gt;
+
+.pull-left[
+- JavaScriptで書かれたオープンソースのライブラリ
+- アプリケーション内で活躍
+- プラグインによる拡張が可能
+    - **[leaflet.extra](https://github.com/bhaskarvk/leaflet.extras)**
+    - **[leaflet.esri](https://github.com/bhaskarvk/leaflet.esri)**
+    - **[leaflet.minicharts](https://github.com/rte-antares-rpackage/leaflet.minicharts)**
+]
+
+.pull-right[
+<div id="htmlwidget-2b6e64774983bf90bb30" style="width:80%;height:331.2px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2b6e64774983bf90bb30">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addPopups","args":[43.066,141.348,"Hi!",null,null,{"maxWidth":300,"minWidth":50,"maxHeight":null,"autoPan":true,"keepInView":false,"closeButton":false,"zoomAnimation":true,"closeOnClick":null,"className":""}]}],"setView":[[43.066,141.348],17,[]],"limits":{"lat":[43.066,43.066],"lng":[141.348,141.348]}},"evals":[],"jsHooks":[]}</script>
+]
+
+
+---
+# データの用意
+
+- 平成27年国勢調査 人口等基本集計 総務省統計局 &lt;http://www.stat.go.jp/data/kokusei/2015/&gt;
+
+
+
+
+```r
+df.pops &lt;- readr::read_rds("inst/data/pref01_population2015.rds")
+```
+
+
+```r
+class(df.pops)
+```
+
+```
+# [1] "tbl_df"     "tbl"        "data.frame"
+```
+
+```r
+glimpse(df.pops) # dplyrのデータ出力関数
+```
+
+```
+# Observations: 303
+# Variables: 3
+# $ city_code &lt;chr&gt; "01000", "01001", "01002", "01100", "01101", "01102"...
+# $ city_name &lt;chr&gt; "北海道", "北海道市部", "北海道郡部", "札幌市", "札幌市 中央区", "札幌市 北区",...
+# $ value     &lt;dbl&gt; 5381733, 4395172, 986561, 1952356, 237627, 285321, 2...
+```
+
+---
+# データの用意
+
+- 国土数値情報 行政区域データ (北海道) &lt;http://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03.html&gt;
+
+
+```r
+df.pref01 &lt;- read_sf("inst/data/ksj_n0301.shp") %&gt;% 
+  magrittr::set_names(c("pref_name", "city_name_", "city_name", "city_name_full", "city_code", "geometry"))
+```
+
+
+```r
+class(df.pref01)
+```
+
+```
+# [1] "sf"         "data.frame"
+```
+
+---
+# sfオブジェクト
+
+.pull-left[
+- Simple feature collection
+    - 5変数 + geometry
+- 地物タイプ: ポリゴン
+- 次元: XY
+- 範囲
+- 空間参照システム(epsg)
+- 投影法
+]
+
+.pull-right[
+
+```r
+head(df.pref01, 3)
+```
+![](img/sf.png)
+]
+
+---
+# 描画してみる
+
+
+```r
+plot(df.pref01)
+```
+
+&lt;img src="2-data-manip-and-vis_files/figure-html/fig_2_plot_hkd_all-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# 描画してみる
+
+.pull-left[
+
+```r
+plot(df.pref01["city_code"])
+```
+
+&lt;img src="2-data-manip-and-vis_files/figure-html/fig_2_plot_hkd_city_code-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+--
+.pull-right[
+
+```r
+# 結果は同じ
+df.pref01 %&gt;% 
+  select(city_code) %&gt;% 
+  plot()
+```
+
+
+```r
+plot(st_geometry(df.pref01))
+```
+]
+
+
+---
+# select()による変数の選択
+
+.pull-left[
+
+```r
+# 変数名を引数で指定する
+df.mod &lt;- df.pref01 %&gt;% select(city_name_full)
+names(df.mod)
+```
+
+```
+# [1] "city_name_full" "geometry"
+```
+]
+
+--
+
+.pull-right[
+
+```r
+plot(df.mod)
+```
+
+&lt;img src="2-data-manip-and-vis_files/figure-html/fig_2_plot_hkd_select-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+# filter()によるデータ抽出
+
+.pull-left[
+
+```r
+# 条件に従うデータを抽出する
+df.mod &lt;- df.mod %&gt;% 
+  # 「札幌市」を含んだ行を取り出す
+  filter(grepl("札幌市", city_name_full))
+```
+]
+
+.pull-right[
+
+```r
+plot(df.mod, 
+     col = "gray", 
+     axes = TRUE)
+```
+
+&lt;img src="2-data-manip-and-vis_files/figure-html/fig_2_plot_hkd_filter-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+# mutate()によるデータの加工
+
+
+```r
+df.pref01$city_code[1] %&gt;% class()
+```
+
+```
+# [1] "factor"
+```
+
+```r
+# 文字列型に変換
+df.pref01$city_code[1] %&gt;% as.character() %&gt;% 
+  class()
+```
+
+```
+# [1] "character"
+```
+
+
+```r
+# データフレームの列に適用
+df.mod &lt;- df.pref01 %&gt;% 
+  mutate(city_code = as.character(city_code))
+
+df.mod$city_code[1] %&gt;% class()
+```
+
+```
+# [1] "character"
+```
+
+---
+# 人口データと結合
+
+2つのデータフレーム間で共通する変数を紐付ける
+
+.pull-left[
+
+```r
+df.mod &lt;- df.mod %&gt;% 
+  left_join(df.pops, by = "city_code")
+
+# 結合時の変数名とデータ型に注意
+# df %&gt;% 
+#   left_join(df.pops, by = "city_code")
+# # Warning message:
+# # Column `city_code` joining factor and character vector, coercing into character vector 
+```
+]
+
+.pull-right[
+
+```r
+plot(df.mod["value"], 
+     col = colormap::colormap("viridis"))
+```
+
+&lt;img src="2-data-manip-and-vis_files/figure-html/fig_2_plot_hkd_population-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+class: bg-hlt, middle, center
+# 👍 やってみよう 💪
+
+&lt;!-- 5分くらい時間を取ってあれこれやってもらう --&gt;
+
+---
+# sfパッケージによるジオメトリ操作
+  
+- st_union: ジオメトリの結合
+- st_buffer: 緩衝帯の付与
+- st_centroid: 重心点を求める
+- st_voronoi: ボロノイ領域の作成
+- st_contains, st_overlaps, st_within: 地物の関係
+- ...
+  
+
+```r
+st_union(df.pref01) %&gt;% 
+  plot()
+
+df.pref01["city_code"] %&gt;% 
+  st_buffer(dist = 0.05) %&gt;% 
+  plot()
+
+st_centroid(df.pref01["city_code"]) %&gt;% 
+  plot()
+```
+
+---
+# leaflet
+
+
+```r
+base.map &lt;- leaflet() %&gt;% 
+  addTiles()
+```
+
+--
+- はじめに`leaflet()`を使って、必要な要素を足していく
+- `addTiles()`はOpenStreetMapのタイルを呼び出す関数
+    - `addProviderTiles()`の引数に`names(providers)`で表示されるサードパーティタイルを変更
+    - `addTiles()`任意のタイルを利用。
+        - 国土地理院タイルを利用する方法 &lt;http://rpubs.com/yutannihilation/121912&gt;
+
+---
+# leafletにsfオブジェクトを描画させる
+
+
+```r
+base.map %&gt;% 
+  addPolygons(data = df.pref01)
+```
+
+<div id="htmlwidget-d3020776eca70e0aa4bd" style="width:100%;height:504px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d3020776eca70e0aa4bd">{"x":{"url":"2-data-manip-and-vis_files/widgets/widget_unnamed-chunk-9.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+# leafletにsfオブジェクトを描画させる
+
+.pull-left[
+
+```r
+df.mod &lt;- df.pref01 %&gt;% 
+  filter(city_name_ == "札幌市")
+```
+
+
+```r
+base.map %&gt;% 
+  addPolygons(data = df.mod) %&gt;% 
+  addMarkers(data = st_centroid(df.mod),
+             popup = ~city_name)
+```
+]
+
+.pull-right[
+<div id="htmlwidget-30dbec7626712ce50c9b" style="width:100%;height:504px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-30dbec7626712ce50c9b">{"x":{"url":"2-data-manip-and-vis_files/widgets/widget_unnamed-chunk-12.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+]
+
+---
+class: bg-hlt, middle, center
+# オープンデータを利用しよう
+
+---
+# 北海道オープンデータカタログ
+
+&lt;http://www.pref.hokkaido.lg.jp/ss/jsk/opendata/opendata.htm&gt;
+
+- 北海道はオープンデータが多い
+- 北海道オープンデータカタログでは、基本的に**Creative Commonsの表示（CC BY）**に従うことで二次利用可能
+
+---
+# どのデータを使う?
+
+- ウェブスクレイピングにより一覧を確認
+     - スクレイピング... ウェブページ上のテキストやデータを取得
+     
+
+```r
+library(rvest)
+```
+
+
+```r
+x &lt;- read_html("http://www.pref.hokkaido.lg.jp/ss/jsk/opendata/opendata.htm")
+df.opd &lt;- x %&gt;% html_table(fill = TRUE) %&gt;% 
+  .[[3]]
+```
+
+
+
+
+```r
+df.opd %&gt;% View()
+```
+
+---
+# 詳細な要素（リンク先のURL）を取得
+
+
+```r
+x %&gt;% html_nodes(css = '#rs_contents &gt; p:nth-child(4) &gt; span &gt; strong')
+# {xml_nodeset (1)}
+# [1] &lt;strong&gt;北海道オープンデータカタログ&lt;/strong&gt;
+```
+
+--
+
+```r
+x %&gt;% html_nodes(css = '#rs_contents &gt; p:nth-child(4) &gt; span &gt; strong') %&gt;% 
+  html_text()
+# 北海道オープンデータカタログ
+```
+
+
+```r
+x %&gt;% html_nodes(css = '#open_data &gt; tbody &gt; tr:nth-child(222) &gt; td:nth-child(3) &gt; a') %&gt;% 
+  html_text()
+# [1] "森林計画関係資料（GIS用データ）"
+(link.url &lt;- x %&gt;% html_nodes(css = '#open_data &gt; tbody &gt; tr:nth-child(222) &gt; td:nth-child(3) &gt; a') %&gt;% 
+  html_attr(name = "href"))
+# [1] "http://www.pref.hokkaido.lg.jp/sr/srk/OPD.htm"
+```
+
+ブラウザの開発モードを使ってselector、XPathを取得すると楽
+
+---
+# 森林計画関係資料のダウンロード
+
+
+```r
+x &lt;- read_html(link.url)
+
+x %&gt;% html_nodes(css= '#rs_contents &gt; div &gt; table &gt; tbody &gt; tr &gt; td:nth-child(2) &gt; p:nth-child(1) &gt; a:nth-child(9)') %&gt;%
+  html_text()
+# [1] "留萌 " "留萌" 
+
+x %&gt;% html_nodes(css= '#rs_contents &gt; div &gt; table &gt; tbody &gt; tr &gt; td:nth-child(2) &gt; p:nth-child(1) &gt; a:nth-child(9)') %&gt;%
+  html_attr("href")
+# [1] "https://www.fics.pref.hokkaido.lg.jp/FILE/2015/KMZ/09rumoi.zip"
+# [2] "https://www.fics.pref.hokkaido.lg.jp/FILE/2015/GIS/09rumoi.zip"
+```
+
+
+```r
+download.file("https://www.fics.pref.hokkaido.lg.jp/FILE/2015/GIS/09rumoi.zip",
+              destfile = "inst/09rumoi.zip")
+unzip(
+  'inst/09rumoi.zip',
+  exdir = "inst/"
+)
+```
+
+---
+class: bg-hlt, middle, center
+# 👍 やってみよう 💪
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {window.dispatchEvent(new Event('resize'));});</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,206 @@
+---
+title: "Rを使った<br>地理空間情報データ操作と可視化"
+subtitle: "FOSS4G北海道 ハンズオンデイ: <br>モダンな方法で学ぶ、Rによる地理空間情報データの処理"
+author: "瓜生 真也 @u_ribo"
+date: "2017年6月30日"
+output:
+  xaringan::moon_reader:
+    css: ja.css
+    lib_dir: libs
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+---
+
+```{r setup, include = FALSE, purl = FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(cache = FALSE,
+                      echo      = TRUE, 
+                      tidy      = FALSE,
+                      comment   = "#",
+                      message   = FALSE, 
+                      error     = FALSE, 
+                      warning   = FALSE,
+                      fig.align = "center")
+library(remoji)
+library(widgetframe)
+```
+
+```{r, include = FALSE, purl = FALSE}
+library(dplyr)
+library(sf)
+library(leaflet)
+```
+
+## ダウンロードした「森林計画関係資料」を読み込む
+
+- `09留萌_小班.shp`
+- `留萌森林簿データ（コード置換版）.csv`
+
+```{r, eval = FALSE, echo = FALSE, purl = FALSE}
+df.pref01 <- read_sf("inst/data/ksj_n0301.shp") %>% 
+  magrittr::set_names(c("pref_name", "city_name_", "city_name", "city_name_full", "city_code", "geometry"))
+```
+
+```{r, echo = FALSE, purl = FALSE}
+df.rumoi <- read_sf("../inst/09留萌/09留萌_小班.shp")
+df.forest <- readr::read_csv("../inst/09留萌/留萌森林簿データ（コード置換版）.csv",
+                             locale = readr::locale(encoding = "cp932"))
+
+df.pref01 <- read_sf("../inst/data/ksj_n0301.shp") %>% 
+  magrittr::set_names(c("pref_name", "city_name_", "city_name", "city_name_full", "city_code", "geometry"))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+# 小班shape
+df.rumoi <- read_sf("inst/09留萌/09留萌_小班.shp")
+# 森林に関するデータ
+df.forest <- readr::read_csv("inst/09留萌/留萌森林簿データ（コード置換版）.csv",
+                             locale = readr::locale(encoding = "cp932"))
+```
+
+```{r}
+names(df.rumoi)
+# plot(df.rumoi["NO"])
+```
+
+---
+# shapefileの編集
+
+ちょっと重いので「部分抽出」と「単純化」を実行
+
+```{r}
+df.rumoi$ID[1:5]
+df.rumoi <- df.rumoi %>% 
+  select(KEYCODE, 市町村コー, 林班, 計画区コー, GISAREA, NO, LUX, ID, geometry) %>% 
+  filter(between(ID, 9010000001, 9010001000)) %>% 
+  st_simplify()
+
+dim(df.rumoi)
+```
+
+---
+## データの結合
+
+```{r}
+df.rumoi <- df.rumoi %>% inner_join(df.forest, by = c("KEYCODE", "林班"))
+```
+
+--
+林種ごとの合計面積を求める
+
+.pull-left[
+```{r, eval = FALSE, echo = TRUE}
+df.rumoi %>% 
+  group_by(林種) %>% 
+  summarise(total_area = sum(GISAREA)) %>% 
+  arrange(desc(total_area))
+```
+]
+
+.pull-right[
+```{r, eval = FALSE, echo = FALSE, purl = FALSE, results = "asis"}
+df.rumoi %>% 
+  group_by(林種) %>% 
+  summarise(total_area = sum(GISAREA)) %>% 
+  arrange(desc(total_area)) %>% 
+  as.data.frame() %>% 
+  select(-geometry) %>% 
+  knitr::kable()
+```
+
+|林種           | total_area|
+|:--------------|----------:|
+|人工林         |     387.22|
+|人工林伐採跡地 |       0.07|
+|天然林         |    1364.91|
+|天然林伐採跡地 |       0.38|
+|未立木地       |      75.52|
+]
+
+---
+## ggplot2を使った可視化
+
+`r emoji("warning")` GitHubで開発されている機能 (CRAN版には実装されていません) `r emoji("warning")` 
+
+.pull-left[
+```{r fig_2_ggplot2_geom_sf, eval = FALSE, echo = TRUE}
+library(ggplot2)
+# 時々失敗します
+ggplot() +
+  geom_sf(data = df.rumoi, aes(fill = GISAREA)) +
+  scale_fill_gradientn(colors = sf.colors(10))
+```
+]
+
+.pull-right[
+![](img/fig_2_ggplot2_geom_sf-1.png)
+]
+
+---
+## ggplot2を使った可視化
+
+「地図」向けにブラッシュアップ
+
+.pull-left[
+```{r fig_2_ggplot2_geom_sf_foresttype, eval = FALSE, echo = TRUE}
+# 文字化けしないためのおまじない
+# Macなら quartzFonts(ipa = quartzFont(rep("HiraMaruProN-W4", 4)))
+# Windownsなら ... windowsFonts(Mei = windowsFont("Meiryo")) 
+quartzFonts(HiraMaru = quartzFont(rep("HiraMaruProN-W4", 4)))
+theme_set(ggthemes::theme_map(base_size = 12, base_family = "HiraMaruProN-W4"))
+ggplot() +
+  geom_sf(data = df.rumoi, aes(fill = 林種))
+```
+]
+
+.pull-right[
+![](img/fig_2_ggplot2_geom_sf_foresttype-1.png)
+]
+
+---
+## st_transform(): 座表参照系、投影法の変更
+
+```{r, eval = FALSE, echo = TRUE}
+leaflet() %>% addTiles() %>% 
+  addPolygons(data = df.rumoi)
+# Warning messages:
+# 1: sf layer is not long-lat data 
+# 2: sf layer has inconsistent datum (+proj=tmerc +lat_0=44 +lon_0=142.25 +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs).
+# Need '+proj=longlat +datum=WGS84'
+```
+
+
+---
+## st_transform(): 座表参照系、投影法の変更
+
+.pull-left[
+```{r}
+# 投影法を確認する
+df.rumoi %>% st_crs()
+```
+
+```{r}
+df.rumoi <- df.rumoi %>% st_transform(crs = "+init=epsg:4326")
+```
+
+```{r, eval = FALSE, echo = FALSE, purl = TRUE}
+# 次の方法でも結果は同じ
+df.rumoi <- df.rumoi %>% st_transform(4326)
+```
+]
+
+.pull-right[
+```{r, eval = require('leaflet'), out.width = '80%', fig.height = 4.6}
+leaflet() %>% addTiles() %>%
+  addPolygons(data = df.rumoi)
+```
+]
+
+ref) <http://uribo.hatenablog.com/entry/2017/04/05/090600>
+
+---
+class: bg-hlt, middle, center
+# `r emoji("+1")` デモ `r emoji("muscle")`
+

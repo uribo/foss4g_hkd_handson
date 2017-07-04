@@ -1,0 +1,191 @@
+---
+title: "補足資料"
+subtitle: "FOSS4G北海道 ハンズオンデイ: <br>モダンな方法で学ぶ、Rによる地理空間情報データの処理"
+author: "瓜生 真也 @u_ribo"
+date: "2017年6月30日"
+output:
+  xaringan::moon_reader:
+    css: ja.css
+    lib_dir: libs
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+---
+
+```{r setup, include = FALSE, purl = FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(cache = FALSE,
+                      echo      = TRUE, 
+                      tidy      = FALSE,
+                      comment   = "#",
+                      message   = FALSE, 
+                      error     = FALSE, 
+                      warning   = FALSE,
+                      fig.align = "center")
+library(remoji)
+library(widgetframe)
+```
+
+# `r emoji("scroll")` 概要
+
+これまでのセクションで導入したけど紹介しきれていない、セクションの中で登場しなかったけど便利なパッケージや小技の解説を時間の許す限り行います。
+
+```{r}
+library(sf)
+```
+
+---
+# sfパッケージによる地物の生成
+
+.pull-left[
+- `st_point()`: ポイント
+    - `st_multipoint()`
+- `st_linestring()`: 線
+    - `st_multilinestring()`
+- `st_polygon()`: ポリゴン
+    - `st_multipolygon()`
+]
+
+.pull-right[
+```{r}
+# ポイントとポイントの組み合わせがマルチポイント
+c(st_point(1:2), st_point(5:6))
+```
+]
+
+---
+# 従来のspオブジェクトとの互換
+
+```{r}
+library(sp)
+```
+
+```{r, eval = TRUE, echo = FALSE, purl = FALSE}
+sp.rumoi <- rgdal::readOGR("../inst/09留萌/09留萌_小班.shp")
+```
+
+```{r, eval = FALSE, echo = TRUE}
+sp.rumoi <- rgdal::readOGR("inst/09留萌/09留萌_小班.shp")
+```
+
+```{r}
+class(sp.rumoi)
+```
+
+---
+# 従来のspオブジェクトとの互換
+
+- `st_as_sf()`... spからsf
+- `as("Spatial")`... sfからsp
+
+```{r}
+sf.rumoi <- sp.rumoi %>% st_as_sf()
+class(sf.rumoi)
+
+sf.rumoi %>% as("Spatial") %>% class()
+```
+
+---
+# 読み込みと書き込み
+
+`sf::st_drivers()`で出力されるファイル形式・データベースに対応。
+
+- `st_read()`
+- `st_write()`
+
+---
+# データベース(PostgreSQL)への接続
+
+```{r, eval = FALSE, echo = TRUE}
+library(DBI)
+library(RPostgreSQL)
+conn = dbConnect(PostgreSQL(),
+                 dbname = "postgis",
+                 user = "username",
+                 password = "password")
+st_read_db(conn, query = "SELECT * FROM scheme.table")
+dbDisconnect(conn)
+```
+
+---
+# 2点間の距離を求める
+
+.pull-left[
+- `sp::spDists()`
+- `geosphere::distGeo()`
+- `fuzzyjoin::geo_join()`
+- `geosphere::distHaversine()`
+- ...
+]
+
+.pull-right[
+```{r}
+# 札幌駅
+point.spr.st <- st_point(c(141.3509218, 43.06866))
+
+x <- st_sfc(
+  point.spr.st,
+  crs = 4326)
+
+# ACU
+y <- st_sfc(
+st_point(c(141.34807, 43.06608)),
+crs = 4326
+)
+
+st_distance(x, y)
+```
+]
+
+---
+# jpndistrict
+
+このハンズオンで利用したパッケージ (国土数値情報の行政区域データ)をR上に読み込み
+
+<https://github.com/uribo/jpndistrict/>
+
+```{r, eval = FALSE}
+library(sf)
+library(jpndistrict)
+df.spr <- spdf_jpn_cities(1, 
+                          jis_code_city = c("01101", "01102", "01103", "01104", "01105", 
+                                            "01106", "01107", "01108", "01109", "01110"))
+
+df.spr %>% st_as_sf() %>% 
+  st_union() %>% 
+  plot()
+```
+
+---
+# jpmesh
+
+<https://github.com/uribo/jpmesh>
+
+```{r}
+library(jpmesh)
+library(dplyr)
+meshcode_to_latlon(5133)
+meshcode_to_latlon(51337783)
+
+latlong_to_meshcode(34.583333, 133.875, order = 2)
+
+data("jpnrect")
+d <- jpnrect %>% 
+  rowwise() %>% 
+  mutate(st_point = st_sfc(st_point(c(longitude, latitude)))) %>% 
+  ungroup() %>%
+  st_as_sf()
+
+# plot(d["mesh_code"])
+```
+
+---
+# その他のパッケージ
+
+- [mapview](https://github.com/r-spatial/mapview)
+- [lawn](https://github.com/ropensci/lawn)
+- [geojsonio](https://github.com/ropensci/geojsonio)
+- [prettymapr](https://github.com/paleolimbot/prettymapr)
+- [osmdata](https://github.com/ropensci/osmdata)
+- [geofacet](https://github.com/hafen/geofacet)
