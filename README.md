@@ -3,12 +3,13 @@
 モダンな方法で学ぶ、Rによる地理空間情報データの処理
 ===================================================
 
-概要
-----
+FOSS4G北海道2017でのハンズオン資料
 
-### スライド
+スライド
+--------
 
--   [お品書き](slides/0-welcome.Rmd)
--   [R, RStudioのいろは](slides/1-r-introduction.Rmd)
--   [Rを使った地理空間情報データ操作と可視化](slides/2-data-manip-and-vis.Rmd)
--   [インタラクティブに動作する地図アプリケーションの作成](slides/3-advanced.Rmd)
+-   [お品書き](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/0-welcome.html)
+-   [R, RStudioのいろは](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/1-r-introduction.html)
+-   [Rを使った地理空間情報データ操作と可視化: 基礎編](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/2-data-manip-and-vis.html)
+-   [Rを使った地理空間情報データ操作と可視化: 実践編](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/2-data-manip-and-vis2.Rmd)
+-   [補足資料](https://rawgit.com/uribo/foss4g_hkd_handson/master/slides/3-advanced.html)
